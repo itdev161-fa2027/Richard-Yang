@@ -1,5 +1,5 @@
 $kind: http-request
-url: localhost:3000/api/users
+url: localhost:3000/api/auth
 method: POST
 headers:
   Content-Type: application/json
@@ -7,11 +7,9 @@ body:
   type: json
   content: "{\r
 
-    \    \"name\": \"Angelina Yang\",\r
-
     \    \"email\": \"angely6@gmail.com\",\r
 
     \    \"password\": \"angel123\" \r
 
     }"
-order: 2000
+order: 1194
