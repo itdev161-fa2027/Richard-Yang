@@ -1,0 +1,6 @@
+$kind: http-request
+url: http://localhost:3000/api/posts/507f1f77bcf86cd799439011
+method: GET
+headers:
+  Content-Type: application/json
+order: 629919609523568

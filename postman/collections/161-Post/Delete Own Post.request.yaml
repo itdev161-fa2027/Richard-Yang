@@ -1,0 +1,7 @@
+$kind: http-request
+url: http://localhost:3000/api/posts/POST_ID_HERE
+method: DELETE
+headers:
+  Content-Type: application/json
+  x-auth-token: YOUR_JWT_TOKEN_HERE
+order: 2638

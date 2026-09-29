@@ -1,10 +1,12 @@
 import express from 'express';
 import connectDatabase from './config/db.js';
-import {check, validationResult} from 'express-validator'
+import { check, validationResult } from 'express-validator'
 import User from './models/User.js';
+import Post from './models/Post.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import auth from './middleware/auth.js';
 
 dotenv.config();
 
@@ -16,7 +18,7 @@ connectDatabase();
 //Middleware
 app.use(express.json());
 
-app.get('/',(req,res) =>
+app.get('/', (req, res) =>
     res.send('http get request sent to root api endpoint')
 );
 
@@ -24,62 +26,62 @@ app.get('/',(req,res) =>
  * @route POST api/user
  * @desc Register user
  */
-app.post('/api/users',[
+app.post('/api/users', [
     //validating data with 'check'
     //      (data, error output) validation
-    check('name','Name is Required').not().isEmpty(),
+    check('name', 'Name is Required').not().isEmpty(),
     check('email', 'Please include a valid Email').isEmail(),
-    check('password', 'Please enter a password with 6 or more characters').isLength({min:6})
-],async (req, res) =>{
+    check('password', 'Please enter a password with 6 or more characters').isLength({ min: 6 })
+], async (req, res) => {
     const errors = validationResult(req);
-     if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { name, email, password } = req.body;
+
+    try {
+        // Check if user already exists
+        let user = await User.findOne({ email: email.toLowerCase() });
+        if (user) {
+            return res.status(400).json({
+                errors: [{ msg: 'User with this email already exists' }]
+            });
         }
-
-        const { name, email, password } = req.body;
-
-        try {
-            // Check if user already exists
-            let user = await User.findOne({ email: email.toLowerCase() });
-            if (user) {
-                return res.status(400).json({
-                    errors: [{ msg: 'User with this email already exists' }]
+        // Create new user instance
+        user = new User({
+            name,
+            email: email.toLowerCase(),
+            password
+        });
+        // Hash the password
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(password, salt);
+        // Save user to database
+        await user.save();
+        // Create JWT payload
+        const payload = {
+            user: {
+                id: user.id
+            }
+        };
+        // Generate JWT token
+        jwt.sign(
+            payload,
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' },
+            (err, token) => {
+                if (err) throw err;
+                res.json({
+                    msg: 'User registered successfully',
+                    token
                 });
             }
-            // Create new user instance
-            user = new User({
-                name,
-                email: email.toLowerCase(),
-                password
-            });
-            // Hash the password
-            const salt = await bcrypt.genSalt(10);
-            user.password = await bcrypt.hash(password, salt);
-            // Save user to database
-            await user.save();
-            // Create JWT payload
-            const payload = {
-                user: {
-                    id: user.id
-                }
-            };
-            // Generate JWT token
-            jwt.sign(
-                payload,
-                process.env.JWT_SECRET,
-                { expiresIn: '1h' },
-                (err, token) => {
-                    if (err) throw err;
-                    res.json({
-                        msg: 'User registered successfully',
-                        token
-                    });
-                }
-            );
-        } catch (error) {
-            console.error(error.message);
-            res.status(500).send('Server error');
-        }
+        );
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server error');
+    }
 });
 
 /**
@@ -89,54 +91,199 @@ app.post('/api/users',[
 app.post('/api/auth', [
     check('email', 'Please include a Valid Email').isEmail(),
     check('password', 'Password is Required').exists()
-    ], async (req, res) => {
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email, password } = req.body;
+
+    try {
+        // Check if user exists
+        let user = await User.findOne({ email: email.toLowerCase() });
+        if (!user) {
+            return res.status(400).json({
+                errors: [{ msg: 'Invalid credentials' }]
+            });
+        }
+        // Verify password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({
+                errors: [{ msg: 'Invalid credentials' }]
+            });
+        }
+        // Create JWT payload
+        const payload = {
+            user: {
+                id: user.id
+            }
+        };
+        // Generate JWT token
+        jwt.sign(
+            payload,
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' },
+            (err, token) => {
+                if (err) throw err;
+                res.json({
+                    msg: 'User logged in successfully',
+                    token
+                });
+            }
+        );
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server error');
+    }
+}
+);
+
+/**
+ * @route   GET api/posts
+ * @desc    Get all posts
+ */
+
+app.get('/api/posts', async (req, res) => {
+  try {
+    const posts = await Post.find().populate('user', 'name').sort({ createDate: -1 });
+
+    res.json(posts);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send('Server error');
+  }
+});
+
+
+/**
+ * @route   GET api/posts/:id
+ * @desc    Get single post
+ */
+app.get('/api/posts/:id', async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id).populate('user', 'name');
+        if (!post) {
+            return RestartProcess.status(404).json({ msg: 'Post Not Found' });
+
+        }
+
+        res.json(post);
+    } catch (error) {
+        console.error(error.message);
+        if (error.kind === 'ObjectId') {
+            return res.status(404).json({ msg: "Post Not Found" });
+
+        }
+        res.status(500).send('Send Error');
+    }
+});
+
+/**
+ * @route   POST api/posts
+ * @desc    Create a post
+ */
+app.post('/api/posts',
+    [
+        auth,
+        check('title', 'Title is Required').not().isEmpty(),
+        check('body', 'Body is Required').not().isEmpty()
+    ],
+    async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.array() });
         }
-
-        const { email, password } = req.body;
-
         try {
-            // Check if user exists
-            let user = await User.findOne({ email: email.toLowerCase() });
-            if (!user) {
-                return res.status(400).json({
-                    errors: [{ msg: 'Invalid credentials' }]
-                });
-            }
-            // Verify password
-            const isMatch = await bcrypt.compare(password, user.password);
-            if (!isMatch) {
-                return res.status(400).json({
-                    errors: [{ msg: 'Invalid credentials' }]
-                });
-            }
-            // Create JWT payload
-            const payload = {
-                user: {
-                    id: user.id
-                }
-            };
-            // Generate JWT token
-            jwt.sign(
-                payload,
-                process.env.JWT_SECRET,
-                { expiresIn: '1h' },
-                (err, token) => {
-                    if (err) throw err;
-                    res.json({
-                        msg: 'User logged in successfully',
-                        token
-                    });
-                }
-            );
+            const { title, body } = req.body;
+            const newPost = new Post({
+                user: req.user.id,
+                title,
+                body,
+            });
+
+            const post = await newPost.save();
+
+            //populate user data before returning
+            await post.populate('user', 'name');
+            res.json(post);
         } catch (error) {
             console.error(error.message);
-            res.status(500).send('Server error');
+            res.status(500).send('Server Error');
+        }
+    });
+
+/**
+* @route   PUT api/posts/:id
+* @desc    Update a post
+*/
+
+app.put('/api/posts/:id/',
+    [
+        auth,
+        check('title', 'Title is Required').not().isEmpty(),
+        check('body', 'Body is Required').not().isEmpty()
+    ],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+        try {
+            const { title, body } = req.body;
+            const post = await Post.findById(req.params.id);
+
+            if (!post) {
+                return res.status(400).json({ msg: 'User not Authorized' });
+            }
+
+            post.title = title;
+            post.body = body;
+
+            await post.save();
+            await post.populate('user', 'name');
+            res.json(post);
+        } catch (error) {
+            console.error(error.message);
+            if (error.kind === 'ObjectId') {
+                return res.status(404).json({ msg: 'Post not Found' });
+            }
+            res.status(500).send('Server Error');
         }
     }
 );
+
+/**
+ * @route   DELETE api/posts/:id
+ * @desc    Delete a post
+ */
+app.delete('/api/posts/:id',auth, async (req, res) =>{
+    const post = await  Post.findById(req.params.id);
+
+    try{
+        if(!post){
+            return res.status(404).json({mes: 'Post not Found'});
+
+        }
+
+        if(post.user.toString() !== req.user.id){
+            return res.status(401).json.apply({msg: 'User not Authorized'});
+        }
+
+        await Post.findByIdAndDelete(req.params.id);
+
+        res.json({msg: 'Post Removed'});
+    }catch(error){
+        console.error(error.message);
+        if(error.kind === 'ObjectId'){
+            return res.status(404).json({msg:'Post not Found'});
+        }
+        rest.status(500).send('Server Error');
+    }
+});
+
+
 
 app.listen(3000, () => console.log('Express server running on port 3000'));
 

@@ -1,0 +1,25 @@
+$kind: http-request
+url: http://localhost:5112/products/1
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: "{\r
+
+    \  \"name\": \"Gaming Laptop Pro\",\r
+
+    \  \"description\": \"Updated high-performance laptop for professional gaming\",\r
+
+    \  \"price\": 1499.99,\r
+
+    \  \"isOnSale\": false,\r
+
+    \  \"salePrice\": null,\r
+
+    \  \"currentStock\": 3,\r
+
+    \  \"imageUrl\": \"https://example.com/images/gaming-laptop-pro.jpg\"\r
+
+    }"
+order: 4503342996985832

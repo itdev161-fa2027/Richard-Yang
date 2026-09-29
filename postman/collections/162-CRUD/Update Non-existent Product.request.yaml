@@ -1,0 +1,25 @@
+$kind: http-request
+url: http://localhost:5235/products/999
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: "{\r
+
+    \  \"name\": \"Test Product\",\r
+
+    \  \"description\": \"This should fail\",\r
+
+    \  \"price\": 100.0,\r
+
+    \  \"isOnSale\": false,\r
+
+    \  \"salePrice\": null,\r
+
+    \  \"currentStock\": 1,\r
+
+    \  \"imageUrl\": \"https://example.com/test.jpg\"\r
+
+    }"
+order: 4503412628279647
