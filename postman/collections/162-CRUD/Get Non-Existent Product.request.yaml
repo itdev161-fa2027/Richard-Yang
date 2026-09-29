@@ -1,0 +1,4 @@
+$kind: http-request
+url: http://localhost:5112/products/999
+method: GET
+order: 4502656867938705

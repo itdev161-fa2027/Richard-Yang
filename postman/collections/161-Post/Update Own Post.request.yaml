@@ -1,0 +1,17 @@
+$kind: http-request
+url: http://localhost:3000/api/posts/POST_ID_HERE
+method: PUT
+headers:
+  Content-Type: application/json
+  x-auth-token: YOUR_JWT_TOKEN_HERE
+body:
+  type: json
+  content: "{\r
+
+    \  \"title\": \"My Updated Post\",\r
+
+    \  \"body\": \"This is the updated content with more **markdown**
+    examples!\"\r
+
+    }\r\n"
+order: 2073

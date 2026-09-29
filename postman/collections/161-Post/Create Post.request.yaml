@@ -1,0 +1,16 @@
+$kind: http-request
+url: http://localhost:3000/api/posts
+method: POST
+headers:
+  Content-Type: application/json
+  x-auth-token: YOUR_JWT_TOKEN_HERE
+body:
+  type: json
+  content: "{\r
+
+    \  \"title\": \"My First Post\",\r
+
+    \  \"body\": \"This is the content of my first post. It supports **markdown** formatting!\"\r
+
+    }\r\n"
+order: 1993
