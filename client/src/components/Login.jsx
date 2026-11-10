@@ -18,16 +18,13 @@ const Login = ({ onLogin, error: authError }) => {
       setErrors({ ...errors, [e.target.name]: '' });
     }
   };
-
   const validateForm = () => {
     const newErrors = {};
-
     if (!email.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       newErrors.email = 'Email is invalid';
     }
-
     if (!password) {
       newErrors.password = 'Password is required';
     }
@@ -35,7 +32,6 @@ const Login = ({ onLogin, error: authError }) => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const onSubmit = async (e) => {
     e.preventDefault();
 
@@ -47,12 +43,10 @@ const Login = ({ onLogin, error: authError }) => {
     await onLogin(email, password);
     setLoading(false);
   };
-
   return (
     <div className="login-form">
       <h2>Welcome Back</h2>
       <p className="login-subtitle">Login to your account</p>
-
       {authError && <div className="error-message">{authError}</div>}
 
       <form onSubmit={onSubmit} noValidate>
@@ -69,7 +63,6 @@ const Login = ({ onLogin, error: authError }) => {
           />
           {errors.email && <span className="field-error">{errors.email}</span>}
         </div>
-
         <div className="form-group">
           <label htmlFor="password">Password</label>
           <input

@@ -2,11 +2,12 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:3000/api';
 
+// Create axios instance
 const api = axios.create({
   baseURL: API_URL,
 });
 
-// Add request interceptor to include auth token
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -20,7 +21,7 @@ api.interceptors.request.use(
   }
 );
 
-// Add response interceptor to handle 401 errors
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -53,60 +54,23 @@ export const loginUser = async (email, password) => {
     throw error;
   }
 };
-
-// Get Post
+// Get all posts
 export const getPosts = async () => {
-    try{
-        const response = await api.get (`${API_URL}/posts`);
-        return response.data;
-    }
-    catch(error){
-        console.error('Error Fetching Posts:',error);
-    }
+  try {
+    const response = await api.get('/posts');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    throw error;
+  }
 };
-
-//Get Post by ID
+// Get single post by ID
 export const getPostById = async (id) => {
   try {
-    const response = await api.get(`${API_URL}/posts/${id}`);
+    const response = await api.get(`/posts/${id}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching post:', error);
     throw error;
   }
 };
-
-//Create Post
-export const createPost = async (title, body) => {
-  try{
-    const response = await api.post('/posts', {title, body});
-    return response.data;
-  }catch(error){
-    console.error('Error Creating Post:', error);
-    throw error;
-  }
-};
-
-//Update Post
-export const updatePost = async (id, title, body) => {
-  try{
-    const response = await api.put(`/posts/${id}`, {title,body});
-    return response.data;
-  }catch(error){
-    console.error(`Error Updating Post:`, error);
-    throw error;
-  }
-};
-
-//Delete Post
-export const deletePost = async (id) => {
-  try{
-    const response = await api.delete(`/posts/${id}`);
-    return response.data;
-  }catch(error){
-    console.error('Error Deleting Post:', error);
-    throw error;
-  }
-};
-
-

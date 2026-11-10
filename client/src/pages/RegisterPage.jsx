@@ -24,7 +24,6 @@ const RegisterPage = () => {
       setError(result.error);
     }
   };
-
   return (
     <div className="auth-page">
       <div className="container">
@@ -38,5 +37,4 @@ const RegisterPage = () => {
     </div>
   );
 };
-
 export default RegisterPage;

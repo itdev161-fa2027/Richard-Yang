@@ -3,26 +3,25 @@ import { jwtDecode } from 'jwt-decode';
 import { registerUser as registerUserAPI, loginUser as loginUserAPI } from '../services/api';
 import { AuthContext } from './authContext';
 
-// AuthProvider component to wrap the app
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Check for existing token on app load
+  // Check for existing token
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     if (storedToken) {
       try {
-        // Decode token to get user info
+        // Decode token
         const decoded = jwtDecode(storedToken);
 
-        // Check if token is expired; exp is in seconds
+        // Check if token is expired
         if (decoded.exp * 1000 < Date.now()) {
           // Token expired, clear it
           localStorage.removeItem('token');
         } else {
-          // Token valid, set user and token
+          // Token valid
           setToken(storedToken);
           setUser(decoded.user);
         }
@@ -43,7 +42,7 @@ export const AuthProvider = ({ children }) => {
       // Store token in localStorage
       localStorage.setItem('token', data.token);
 
-      // Decode token to get user info
+      // Decode token 
       const decoded = jwtDecode(data.token);
 
       // Update state
@@ -69,7 +68,6 @@ export const AuthProvider = ({ children }) => {
       // Decode token to get user info
       const decoded = jwtDecode(data.token);
 
-      // Update state
       setToken(data.token);
       setUser(decoded.user);
 
@@ -90,7 +88,6 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  // Context value to provide
   const value = {
     user,
     token,
