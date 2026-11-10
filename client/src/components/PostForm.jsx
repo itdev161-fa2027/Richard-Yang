@@ -26,7 +26,7 @@ const validateForm = () => {
         newErrors.title = 'Body must be at least 10 Characters';
     }
     setErrors(newErrors);
-    return Object.kets(newErrors).length === 0;
+    return Object.keys(newErrors).length === 0;
 };
 
 const handleSubmit = async (e) => {
@@ -34,7 +34,7 @@ const handleSubmit = async (e) => {
     if(!validateForm()){
         return;
     }
-    await onSubmit(title.trim(). body.trim());
+    await onSubmit(title.trim(), body.trim());
 };
 
  return (
