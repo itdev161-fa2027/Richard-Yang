@@ -78,6 +78,7 @@ const Login = ({ onLogin, error: authError }) => {
             <span className="field-error">{errors.password}</span>
           )}
         </div>
+
         <button type="submit" className="submit-button" disabled={loading}>
           {loading ? 'Logging in...' : 'Login'}
         </button>
