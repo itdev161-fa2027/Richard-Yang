@@ -11,8 +11,6 @@ const Home = () => {
   const [error, setError] = useState(null);
   const { user } = useContext(AuthContext);
 
-  const { user } = useContext(AuthContext);
-
   useEffect(() => {
     const fetchPosts = async () => {
       try {
